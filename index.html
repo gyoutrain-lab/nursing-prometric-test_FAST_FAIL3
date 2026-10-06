@@ -57,6 +57,7 @@
       font-size: 1.1rem;
       margin-top: 10px;
       margin-bottom: 20px;
+      font-weight: 600;
     }
 
     .q-card {
@@ -225,6 +226,8 @@
       if (timer > 0 && !isTerminated) {
         timer--;
         document.getElementById('timer-display').innerText = timer;
+      } else if (timer === 0 && !isTerminated) {
+        triggerFastFail("TIME EXPIRED");
       }
     }, 1000);
 
@@ -232,9 +235,13 @@
       if (isTerminated) return;
 
       if (currentIndex >= questions.length) {
-        document.getElementById('q-title').innerText = "Exam Completed!";
+        document.getElementById('q-title').innerText = "Exam Completed Successfully!";
         document.getElementById('options-container').innerHTML = "";
         document.getElementById('btn-submit').style.display = "none";
+        
+        const badge = document.getElementById('status-badge');
+        badge.innerText = "PASSED";
+        badge.style.color = "green";
         return;
       }
 
@@ -265,13 +272,18 @@
         loadQuestion();
       } else {
         counts[q.tag] = (counts[q.tag] || 0) + 1;
-        triggerFastFail();
+        triggerFastFail(`CRITICAL ${q.tag.toUpperCase()} ERROR`);
       }
     }
 
-    function triggerFastFail() {
+    function triggerFastFail(reason = "CRITICAL CLINICAL ERROR DETECTED") {
       isTerminated = true;
-      document.getElementById('fail-banner').style.display = "block";
+      clearInterval(timerInterval);
+      
+      const banner = document.getElementById('fail-banner');
+      banner.innerText = `FAST FAIL TERMINATION: ${reason}!`;
+      banner.style.display = "block";
+      
       document.getElementById('q-card').style.opacity = "0.5";
       document.getElementById('btn-submit').disabled = true;
       
